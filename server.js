@@ -9,7 +9,6 @@ dotenv.config();
 
 const app = express();
 app.use(cors({
-  origin: "https://my-vacation-holidays-su81.vercel.app",  
   credentials: true,                
 }));
 
