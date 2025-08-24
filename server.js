@@ -9,7 +9,6 @@ dotenv.config();
 
 const app = express();
 app.use(cors({
-  origin: "https://myvacationholidays.in/",  
   credentials: true,                
 }));
 
