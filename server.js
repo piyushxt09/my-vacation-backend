@@ -9,12 +9,7 @@ dotenv.config();
 
 const app = express();
 
-app.use(
-  cors({
-    origin: "https://my-vacation-holidays-piyushxt09s-projects.vercel.app", 
-    credentials: true, 
-  })
-);
+app.use(cors());
 
 app.use(express.json());
 
@@ -53,7 +48,6 @@ app.post("/api/add-tour", upload.single("image"), async (req, res) => {
   }
 });
 
-
 app.get("/api/domestic-packages", async (req, res) => {
   try {
     const db = await connectDB();
@@ -64,7 +58,6 @@ app.get("/api/domestic-packages", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
 
 app.get("/api/similar-tours", async (req, res) => {
   try {
@@ -82,7 +75,6 @@ app.get("/api/similar-tours", async (req, res) => {
   }
 });
 
-
 app.get("/api/indian-tours", async (req, res) => {
   try {
     const db = await connectDB();
@@ -97,7 +89,6 @@ app.get("/api/indian-tours", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
 
 app.get("/api/international-tours", async (req, res) => {
   try {
@@ -114,7 +105,6 @@ app.get("/api/international-tours", async (req, res) => {
   }
 });
 
-
 app.get("/api/fixed-tours", async (req, res) => {
   try {
     const db = await connectDB();
@@ -129,7 +119,6 @@ app.get("/api/fixed-tours", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
 
 app.get("/api/theme-destinations", async (req, res) => {
   try {
@@ -165,7 +154,6 @@ app.get("/api/theme-destinations", async (req, res) => {
   }
 });
 
-
 app.get("/api/tours", async (req, res) => {
   try {
     const db = await connectDB();
@@ -175,7 +163,6 @@ app.get("/api/tours", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
 
 app.get("/api/international-packages", async (req, res) => {
   try {
@@ -187,7 +174,6 @@ app.get("/api/international-packages", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
 
 app.get("/api/tour/:url", async (req, res) => {
   try {
@@ -203,7 +189,6 @@ app.get("/api/tour/:url", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
 
 app.get("/api/tour/:url/similar", async (req, res) => {
   try {
@@ -224,7 +209,6 @@ app.get("/api/tour/:url/similar", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
 
 app.post("/api/login", async (req, res) => {
   try {
