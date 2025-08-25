@@ -9,7 +9,7 @@ dotenv.config();
 
 const app = express();
 app.use(cors({
-  credentials: true,                
+  credentials: true,
 }));
 
 app.use(express.json());
@@ -242,7 +242,7 @@ app.post("/api/login", async (req, res) => {
     // ✅ Set cookie (important for Next.js middleware)
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "lax",
       path: "/",
     });
