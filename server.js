@@ -220,6 +220,7 @@ app.post("/api/login", async (req, res) => {
     const db = await connectDB();
     const { username, password } = req.body;
 
+    // Check if user exists
     const user = await db.collection("admin").findOne({ username });
     if (!user || user.password !== password) {
       return res.status(401).json({ error: "Invalid username or password" });
@@ -232,21 +233,18 @@ app.post("/api/login", async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none", // required for cross-domain cookies
-      path: "/",
-      maxAge: 24 * 60 * 60 * 1000,
+    // Return JWT in response body (to be stored in sessionStorage on frontend)
+    return res.json({
+      success: true,
+      message: "Login successful",
+      token, // <-- frontend stores this in sessionStorage
     });
-
-
-    return res.json({ success: true, message: "Login successful" });
   } catch (err) {
     console.error("❌ Login error:", err.message);
     res.status(500).json({ error: "Server error" });
   }
 });
+
 
 const PORT = process.env.PORT || 5000;
 connectDB().then(() => {
