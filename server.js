@@ -9,7 +9,11 @@ dotenv.config();
 
 const app = express();
 app.use(cors({
+<<<<<<< HEAD
   credentials: true,
+=======
+  credentials: true,                
+>>>>>>> 2cfa575c0e9c08e52e4bc5cca65a04d26c255106
 }));
 
 app.use(express.json());
