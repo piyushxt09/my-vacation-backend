@@ -11,7 +11,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://my-vacation-holidays.onrender.com",
+    origin: "https://myvacationholidays.in",
     credentials: true,
   })
 );
