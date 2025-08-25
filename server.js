@@ -11,7 +11,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://myvacationholidays.in", 
+    origin: "https://my-vacation-holidays-piyushxt09s-projects.vercel.app", 
     credentials: true, 
   })
 );
