@@ -9,7 +9,12 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://myvacationholidays.in",
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
@@ -227,13 +232,14 @@ app.post("/api/login", async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    // ✅ Set cookie (important for Next.js middleware)
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none", // required for cross-domain cookies
       path: "/",
+      maxAge: 24 * 60 * 60 * 1000,
     });
+
 
     return res.json({ success: true, message: "Login successful" });
   } catch (err) {
