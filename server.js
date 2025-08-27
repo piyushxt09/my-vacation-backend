@@ -132,7 +132,7 @@ app.use('/api', deleteTourRoutes);
 app.get("/api/domestic-packages", async (req, res) => {
   try {
     const db = await connectDB();
-    const tours = await db.collection("users").find({ indian: "Yes" }).toArray();
+    const tours = await db.collection("tours").find({ indian: "Yes" }).toArray();
     res.json(tours);
   } catch (error) {
     console.error("❌ Error fetching domestic tours:", error.message);
@@ -144,7 +144,7 @@ app.get("/api/similar-tours", async (req, res) => {
   try {
     const db = await connectDB();
 
-    const tours = await db.collection("users")
+    const tours = await db.collection("tours")
       .find({ fixed_departure: "Yes" }) // match fixed departure
       .limit(4)                         // limit to 4
       .toArray();
@@ -160,7 +160,7 @@ app.get("/api/indian-tours", async (req, res) => {
   try {
     const db = await connectDB();
 
-    const tours = await db.collection("users").find(
+    const tours = await db.collection("tours").find(
       { indian: "Yes" }
     ).toArray();
 
@@ -175,7 +175,7 @@ app.get("/api/international-tours", async (req, res) => {
   try {
     const db = await connectDB();
 
-    const tours = await db.collection("users").find(
+    const tours = await db.collection("tours").find(
       { international: "Yes" }
     ).toArray();
 
@@ -190,7 +190,7 @@ app.get("/api/fixed-tours", async (req, res) => {
   try {
     const db = await connectDB();
 
-    const tours = await db.collection("users").find(
+    const tours = await db.collection("tours").find(
       { fixed_departure: "Yes" }
     ).toArray();
 
@@ -205,7 +205,7 @@ app.get("/api/theme-destinations", async (req, res) => {
   try {
     const db = await connectDB();
 
-    const themes = await db.collection("users").aggregate([
+    const themes = await db.collection("tours").aggregate([
       {
         $group: {
           _id: "$theme",            // group by theme
@@ -238,7 +238,7 @@ app.get("/api/theme-destinations", async (req, res) => {
 app.get("/api/tours", async (req, res) => {
   try {
     const db = await connectDB();
-    const tours = await db.collection("users").find({}).toArray();
+    const tours = await db.collection("tours").find({}).toArray();
     res.json(tours);
   } catch (error) {
     res.status(500).json({ error: "Server error" });
@@ -259,7 +259,7 @@ app.get("/api/alltour", async (req, res) => {
 app.get("/api/international-packages", async (req, res) => {
   try {
     const db = await connectDB();
-    const tours = await db.collection("users").find({ international: "Yes" }).toArray();
+    const tours = await db.collection("tours").find({ international: "Yes" }).toArray();
     res.json(tours);
   } catch (error) {
     console.error("❌ Error fetching international tours:", error.message);
@@ -272,7 +272,7 @@ app.get("/api/tour/:url", async (req, res) => {
     const db = await connectDB();
     const url = req.params.url;
 
-    const tour = await db.collection("users").findOne({ url });
+    const tour = await db.collection("tours").findOne({ url });
     if (!tour) return res.status(404).json({ error: "Tour not found" });
 
     res.json(tour);
@@ -287,10 +287,10 @@ app.get("/api/tour/:url/similar", async (req, res) => {
     const db = await connectDB();
     const url = req.params.url;
 
-    const currentTour = await db.collection("users").findOne({ url });
+    const currentTour = await db.collection("tours").findOne({ url });
     if (!currentTour) return res.json([]);
 
-    const similarTours = await db.collection("users")
+    const similarTours = await db.collection("tours")
       .find({ theme: currentTour.theme, url: { $ne: url } })
       .limit(4)
       .toArray();

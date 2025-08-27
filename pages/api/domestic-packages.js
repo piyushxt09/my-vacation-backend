@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   try {
     const db = await connectDB();
     const tours = await db
-      .collection("users")
+      .collection("tours")
       .find({ indian: "Yes" })
       .toArray();
 
