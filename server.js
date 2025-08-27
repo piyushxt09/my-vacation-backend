@@ -10,6 +10,7 @@ const fs = require('fs');
 const tourRoutes = require('./routes/tourRoutes');
 const seoRoutes = require('./routes/seoRoutes');
 const deleteTourRoutes = require('./routes/deleteRoutes');
+const testimonialRoutes = require('./routes/testimonialRoutes');
 
 
 dotenv.config();
@@ -127,6 +128,18 @@ app.use('/api', tourRoutes);
 app.use('/api', seoRoutes);
 app.use('/api', deleteTourRoutes);
 
+app.use('/api', testimonialRoutes);
+
+app.get("/api/testimonials", async (req, res) => {
+  try {
+    const db = await connectDB();
+    const testimonials = await db.collection("testimonial").find({}).toArray();
+    res.json(testimonials);
+  } catch (error) {
+    console.error("❌ Error fetching testimonials:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 
 app.get("/api/domestic-packages", async (req, res) => {
@@ -252,6 +265,40 @@ app.get("/api/alltour", async (req, res) => {
     res.json(tours);
   } catch (error) {
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+
+app.get("/api/testimonials", async (req, res) => {
+  try {
+    const db = await connectDB();
+    const tours = await db.collection("testimonial").find({}).toArray();
+    res.json(tours);
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.delete("/api/delete-testimonial/:id", async (req, res) => {
+  try {
+    const db = await connectDB();
+    const { id } = req.params;
+
+    // validate ObjectId
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "Invalid testimonial ID" });
+    }
+
+    const result = await db.collection("testimonial").deleteOne({ _id: new ObjectId(id) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: "Testimonial not found" });
+    }
+
+    res.json({ success: true, message: "Testimonial deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting testimonial:", error);
+    res.status(500).json({ error: "Server error", details: error.message });
   }
 });
 
