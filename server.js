@@ -4,48 +4,130 @@ const dotenv = require("dotenv");
 const multer = require("multer");
 const connectDB = require("./connection/db");
 const jwt = require("jsonwebtoken");
+const cloudinary = require('cloudinary');
+const { v4: uuidv4 } = require('uuid');
+const fs = require('fs');
+const tourRoutes = require('./routes/tourRoutes');
+const seoRoutes = require('./routes/seoRoutes');
+const deleteTourRoutes = require('./routes/deleteRoutes');
+
 
 dotenv.config();
 
 const app = express();
-
+connectDB();
 app.use(cors());
 app.use(express.json());
 
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
+
+const upload = multer({ dest: "uploads/" });
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret";
+
+// Cloudinary config
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const slugify = (text) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")   // replace non-alphanumeric with -
+    .replace(/^-+|-+$/g, "");      // remove leading/trailing -
+};
 
 app.post("/api/add-tour", upload.single("image"), async (req, res) => {
   try {
     const db = await connectDB();
 
+    // Parse itinerary safely
+    let itinerary = [];
+    try {
+      itinerary = JSON.parse(req.body.itinerary || "[]");
+    } catch (e) {
+      console.error("Error parsing itinerary:", e);
+      return res.status(400).json({ error: "Invalid itinerary format" });
+    }
+
+    // Upload image to Cloudinary (no folder, root level)
+    let imageUrl = null;
+    if (req.file) {
+      try {
+        if (!fs.existsSync(req.file.path)) {
+          throw new Error("File not found at temporary path");
+        }
+
+        const result = await cloudinary.v2.uploader.upload(req.file.path, {
+          public_id: `tour-${uuidv4()}`, // optional unique name
+          transformation: [
+            { width: 800, height: 600, crop: "limit" },
+            { quality: "auto" }
+          ]
+        });
+
+        imageUrl = result.secure_url;
+
+        // delete temp file
+        fs.unlinkSync(req.file.path);
+      } catch (uploadError) {
+        console.error("Cloudinary upload error:", uploadError);
+        return res.status(500).json({
+          error: "Image upload failed",
+          details: uploadError.message
+        });
+      }
+    }
+
+    // Generate slug URL from package_name
+    const urlSlug = slugify(req.body.package_name);
+
+    // Prepare data
     const tourData = {
       package_name: req.body.package_name,
       tour_duration: req.body.tour_duration,
       tour_destination: req.body.tour_destination,
       tour_price: req.body.tour_price,
       theme: req.body.theme,
-      indian: req.body.indian,
-      international: req.body.international,
-      fixed_departure: req.body.fixed_departure,
+      indian: req.body.indian || "No",
+      international: req.body.international || "No",
+      fixed_departure: req.body.fixed_departure || "No",
       inclusions: req.body.inclusions,
       exclusions: req.body.exclusions,
-      itinerary: JSON.parse(req.body.itinerary || "[]"),
-      image: req.file ? req.file.buffer.toString("base64") : null,
-      createdAt: new Date()
+      itinerary,
+      image: imageUrl,
+      url: urlSlug,   // ✅ store the slug
+      createdAt: new Date(),
     };
 
-    const result = await db.collection("users").insertOne(tourData);
+    // Insert into MongoDB
+    const result = await db.collection("tours").insertOne(tourData);
 
-    res.json({ success: true, insertedId: result.insertedId });
-
+    res.status(201).json({
+      success: true,
+      message: "Tour added successfully",
+      tourId: result.insertedId,
+      imageUrl,
+      url: urlSlug,
+    });
   } catch (error) {
-    console.error("❌ Error inserting tour:", error.message);
-    res.status(500).json({ error: "Server error" });
+    console.error("❌ Error inserting tour:", error);
+    res.status(500).json({
+      error: "Server error",
+      details: error.message,
+    });
   }
 });
+
+app.use('/api', tourRoutes);
+
+app.use('/api', seoRoutes);
+app.use('/api', deleteTourRoutes);
+
+
 
 app.get("/api/domestic-packages", async (req, res) => {
   try {
@@ -162,6 +244,17 @@ app.get("/api/tours", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
+app.get("/api/alltour", async (req, res) => {
+  try {
+    const db = await connectDB();
+    const tours = await db.collection("tours").find({}).toArray();
+    res.json(tours);
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 
 app.get("/api/international-packages", async (req, res) => {
   try {
